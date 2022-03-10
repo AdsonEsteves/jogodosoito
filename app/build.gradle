@@ -28,3 +28,15 @@ application {
     // Define the main class for the application.
     mainClass = 'jogodosoito.App'
 }
+
+mainClassName = "jogodosoito.App"
+
+jar {
+  manifest {
+    attributes "Main-Class": "$mainClassName"
+  }
+
+  from {
+    configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+  }
+}
