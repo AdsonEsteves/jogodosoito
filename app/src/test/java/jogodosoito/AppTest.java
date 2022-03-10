@@ -8,8 +8,44 @@ import static org.junit.Assert.*;
 
 public class AppTest {
     @Test
-    public void testAppHasAGreeting() {
-        App classUnderTest = new App();
-        // assertNotNull("app should have a greeting", classUnderTest.getGreeting());
+    public void testIfFillingBoard() {
+        Game game = new Game();
+        Tile[][] board = new Tile[Game.SIZE][Game.SIZE];
+        game.fillBoard(board);
+        int count = 0;
+        for (int i = 0; i < Game.SIZE; i++) {
+            for (int j = 0; j < Game.SIZE; j++) {
+                if (board[i][j] != null)
+                    count++;
+            }
+        }
+        assertEquals(true, count == Game.SIZE * Game.SIZE);
+    }
+
+    @Test
+    public void testIfShufflingBoard() {
+        Game game = new Game();
+        Tile[][] board = new Tile[Game.SIZE][Game.SIZE];
+        game.fillBoard(board);
+        game.shuffleBoard(board);
+        int count = 0;
+        for (int i = 0; i < Game.SIZE; i++) {
+            for (int j = 0; j < Game.SIZE; j++) {
+                if (board[i][j].getNumber() != count)
+                    break;
+                else
+                    count++;
+            }
+        }
+        assertEquals(true, count != Game.SIZE * Game.SIZE);
+    }
+
+    @Test
+    public void testIfSwitchingNumbers() {
+        Game game = new Game();
+        Tile tile1 = new Tile(1, 0, 0, game);
+        Tile tile2 = new Tile(2, 0, 0, game);
+        game.rearrange2Tiles(tile1, tile2);
+        assertEquals(true, tile1.getNumber() == 2 && tile2.getNumber() == 1);
     }
 }

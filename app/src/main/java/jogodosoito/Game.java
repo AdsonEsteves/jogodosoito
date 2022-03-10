@@ -29,18 +29,18 @@ public class Game {
 
     public void load() {
         loadComponents();
-        fillBoard();
-        show();
+        fillBoard(this.board);
         do {
-            shuffleBoard();
-        } while (notSolvable());
+            shuffleBoard(this.board);
+        } while (notSolvable(board));
+        show();
     }
 
     public void show() {
         mainFrame.setVisible(true);
     }
 
-    public void fillBoard() {
+    public void fillBoard(Tile[][] board) {
         int counter = 0;
         GridBagConstraints gbc = new GridBagConstraints();
         for (int i = 0; i < SIZE; i++) {
@@ -49,7 +49,8 @@ public class Game {
                 gbc.gridy = i;
                 Tile tile = new Tile(counter, j, i, this);
                 board[i][j] = tile;
-                boardPanel.add(tile.getTilePanel(), gbc);
+                if (boardPanel != null)
+                    boardPanel.add(tile.getTilePanel(), gbc);
                 if (counter == 0) {
                     tile0 = tile;
                 }
@@ -58,7 +59,7 @@ public class Game {
         }
     }
 
-    public void shuffleBoard() {
+    public void shuffleBoard(Tile[][] board) {
         for (int i = 0; i < SIZE; i++) {
             for (int j = 0; j < SIZE; j++) {
                 int m = ((int) (Math.random() * 10)) % 3;
@@ -68,7 +69,7 @@ public class Game {
         }
     }
 
-    public int getInvCount() {
+    public int getInvCount(Tile[][] board) {
         int inv_count = 0;
         Tile[] array = Stream.of(board).flatMap(Stream::of).toArray(Tile[]::new);
         for (int i = 0; i < array.length - 1; i++)
@@ -78,12 +79,12 @@ public class Game {
         return inv_count;
     }
 
-    public boolean notSolvable() {
-        int invCount = getInvCount();
+    public boolean notSolvable(Tile[][] board) {
+        int invCount = getInvCount(board);
         return !(invCount % 2 == 0);
     }
 
-    public boolean itsSolved() {
+    public boolean itsSolved(Tile[][] board) {
         int count = 1;
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board.length; j++) {
@@ -103,13 +104,12 @@ public class Game {
         int distanceY = tile.getPosy() - tile0.getPosy();
         if ((Math.abs(distanceX) == 1 && distanceY == 0) || (Math.abs(distanceY) == 1 && distanceX == 0)) {
             rearrange2Tiles(tile, tile0);
-            if (itsSolved())
+            if (itsSolved(this.board))
                 JOptionPane.showMessageDialog(null, "You WON!");
         }
     }
 
     public void rearrange2Tiles(Tile tile, Tile tile2) {
-
         int temp;
         temp = tile.getNumber();
         tile.setNumber(tile2.getNumber());
@@ -119,9 +119,10 @@ public class Game {
             this.tile0 = tile;
         if (tile2.getNumber() == 0)
             this.tile0 = tile2;
-
-        boardPanel.revalidate();
-        boardPanel.repaint();
+        if (boardPanel != null) {
+            boardPanel.revalidate();
+            boardPanel.repaint();
+        }
     }
 
     public void loadComponents() {
