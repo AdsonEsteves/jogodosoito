@@ -2,15 +2,11 @@ package jogodosoito;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.GridBagLayout;
 import java.awt.event.MouseEvent;
-import java.awt.GridBagConstraints;
 
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
-import javax.swing.WindowConstants;
 import javax.swing.event.MouseInputAdapter;
 
 public class Tile {
@@ -58,7 +54,12 @@ public class Tile {
     }
 
     public void setNumber(int number) {
+        this.tileLabel.setText(number + "");
         this.number = number;
+        if (number == 0)
+            this.tileLabel.setVisible(false);
+        else
+            this.tileLabel.setVisible(true);
     }
 
     public int getPosx() {
@@ -82,12 +83,14 @@ public class Tile {
 
             @Override
             public void mouseEntered(MouseEvent e) {
-                tilePanel.setBackground(Color.WHITE);
+                tilePanel.setBackground(Color.LIGHT_GRAY);
+                tileLabel.setForeground(Color.BLACK);
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
-                tilePanel.setBackground(Color.LIGHT_GRAY);
+                tilePanel.setBackground(Color.WHITE);
+                tileLabel.setForeground(Color.BLACK);
             }
 
             @Override
@@ -98,30 +101,21 @@ public class Tile {
     }
 
     public void setScreenConfig() {
-        this.tileLabel.setPreferredSize(new Dimension(100, 100));
-        this.tilePanel.setPreferredSize(new Dimension(100, 100));
+        int tile_size = Game.SCREEN_SIZE / Game.SIZE;
+        this.tileLabel.setPreferredSize(new Dimension(tile_size, tile_size));
+        this.tilePanel.setPreferredSize(new Dimension(tile_size, tile_size));
 
         this.tileLabel.setBorder(null);
         this.tilePanel.setBorder(null);
 
-        this.tilePanel.setBackground(Color.LIGHT_GRAY);
+        this.tilePanel.setBackground(Color.WHITE);
+        this.tileLabel.setForeground(Color.BLACK);
+        if (number == 0) {
+            this.tileLabel.setVisible(false);
+            this.tilePanel.setOpaque(false);
+        }
         this.tileLabel.setHorizontalAlignment(SwingConstants.CENTER);
         this.tileLabel.setVerticalAlignment(SwingConstants.CENTER);
         this.tilePanel.add(this.tileLabel);
-    }
-
-    public static void main(String[] args) {
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        Tile tile = new Tile(6, 1, 2, new Game());
-        JFrame frame = new JFrame();
-        frame.setLocationRelativeTo(null);
-        frame.setLayout(new GridBagLayout());
-        frame.setMinimumSize(new Dimension(300, 300));
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-
-        frame.getContentPane().add(tile.getTilePanel(), gbc);
-        frame.setVisible(true);
     }
 }

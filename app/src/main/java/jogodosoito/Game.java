@@ -2,10 +2,12 @@ package jogodosoito;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.util.stream.Stream;
 
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
@@ -16,7 +18,8 @@ public class Game {
     GridBagLayout boardLayout;
 
     static int SIZE = 3;
-    int[][] board = new int[SIZE][SIZE];
+    static int SCREEN_SIZE = 300;
+    Tile[][] board = new Tile[SIZE][SIZE];
     Tile tile0;
 
     public void start() {
@@ -24,21 +27,32 @@ public class Game {
         show();
     }
 
+    public void load() {
+        loadComponents();
+        fillBoard();
+        show();
+        do {
+            shuffleBoard();
+        } while (notSolvable());
+    }
+
     public void show() {
         mainFrame.setVisible(true);
     }
 
-    public void load() {
-        fillBoard();
-        shuffleBoard();
-        loadComponents();
-    }
-
     public void fillBoard() {
         int counter = 0;
+        GridBagConstraints gbc = new GridBagConstraints();
         for (int i = 0; i < SIZE; i++) {
             for (int j = 0; j < SIZE; j++) {
-                board[i][j] = counter;
+                gbc.gridx = j;
+                gbc.gridy = i;
+                Tile tile = new Tile(counter, j, i, this);
+                board[i][j] = tile;
+                boardPanel.add(tile.getTilePanel(), gbc);
+                if (counter == 0) {
+                    tile0 = tile;
+                }
                 counter++;
             }
         }
@@ -47,42 +61,67 @@ public class Game {
     public void shuffleBoard() {
         for (int i = 0; i < SIZE; i++) {
             for (int j = 0; j < SIZE; j++) {
-                var temp = 0;
                 int m = ((int) (Math.random() * 10)) % 3;
                 int n = ((int) (Math.random() * 10)) % 3;
-                temp = board[m][n];
-                board[m][n] = board[i][j];
-                board[i][j] = temp;
+                rearrange2Tiles(board[i][j], board[m][n]);
             }
         }
+    }
+
+    public int getInvCount() {
+        int inv_count = 0;
+        Tile[] array = Stream.of(board).flatMap(Stream::of).toArray(Tile[]::new);
+        for (int i = 0; i < array.length - 1; i++)
+            for (int j = i + 1; j < array.length; j++)
+                if (array[i].getNumber() > 0 && array[j].getNumber() > 0 && array[i].getNumber() > array[j].getNumber())
+                    inv_count++;
+        return inv_count;
+    }
+
+    public boolean notSolvable() {
+        int invCount = getInvCount();
+        return !(invCount % 2 == 0);
+    }
+
+    public boolean itsSolved() {
+        int count = 1;
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board.length; j++) {
+                if (board[i][j].getNumber() != count) {
+                    return false;
+                } else if (count == 8) {
+                    return true;
+                }
+                count++;
+            }
+        }
+        return false;
     }
 
     public void switchPositions(Tile tile) {
         int distanceX = tile.getPosx() - tile0.getPosx();
         int distanceY = tile.getPosy() - tile0.getPosy();
-        GridBagConstraints gbc = new GridBagConstraints();
         if ((Math.abs(distanceX) == 1 && distanceY == 0) || (Math.abs(distanceY) == 1 && distanceX == 0)) {
-            int aux = 0;
-            aux = tile0.getPosx();
-            tile0.setPosx(tile.getPosx());
-            tile.setPosx(aux);
-
-            aux = tile0.getPosy();
-            tile0.setPosy(tile.getPosy());
-            tile.setPosy(aux);
-
-            gbc.gridx = tile.getPosx();
-            gbc.gridy = tile.getPosy();
-
-            boardLayout.setConstraints(tile.getTilePanel(), gbc);
-
-            gbc.gridx = tile0.getPosx();
-            gbc.gridy = tile0.getPosy();
-            boardLayout.setConstraints(tile0.getTilePanel(), gbc);
-
-            boardPanel.revalidate();
-            boardPanel.repaint();
+            rearrange2Tiles(tile, tile0);
+            if (itsSolved())
+                JOptionPane.showMessageDialog(null, "You WON!");
         }
+    }
+
+    public void rearrange2Tiles(Tile tile, Tile tile2) {
+
+        int temp;
+        temp = tile.getNumber();
+        tile.setNumber(tile2.getNumber());
+        tile2.setNumber(temp);
+
+        if (tile.getNumber() == 0)
+            this.tile0 = tile;
+        if (tile2.getNumber() == 0)
+            this.tile0 = tile2;
+
+        boardPanel.revalidate();
+        boardPanel.repaint();
     }
 
     public void loadComponents() {
@@ -92,9 +131,9 @@ public class Game {
         mainFrame = new JFrame("Jogo dos Oito");
         boardPanel = new JPanel();
 
-        boardPanel.setPreferredSize(new Dimension(300, 300));
+        boardPanel.setPreferredSize(new Dimension(SCREEN_SIZE, SCREEN_SIZE));
 
-        boardPanel.setBackground(Color.CYAN);
+        boardPanel.setBackground(Color.WHITE);
         boardPanel.setBorder(null);
 
         boardLayout = new GridBagLayout();
@@ -102,26 +141,10 @@ public class Game {
         boardPanel.setLayout(boardLayout);
 
         mainFrame.getContentPane().add(boardPanel, gbc);
-
-        loadTiles();
         mainFrame.pack();
         mainFrame.setLocationRelativeTo(null);
+        mainFrame.setResizable(false);
         mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-    }
-
-    public void loadTiles() {
-        GridBagConstraints gbc = new GridBagConstraints();
-        for (int i = 0; i < SIZE; i++) {
-            for (int j = 0; j < SIZE; j++) {
-                gbc.gridx = i;
-                gbc.gridy = j;
-                Tile tile = new Tile(board[i][j], i, j, this);
-                boardPanel.add(tile.getTilePanel(), gbc);
-                if (board[i][j] == 0) {
-                    tile0 = tile;
-                }
-            }
-        }
     }
 
 }
